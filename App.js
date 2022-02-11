@@ -39,14 +39,14 @@ export default function App() {
       key: markers.length,
       coords: {
         latitude: e.nativeEvent.coordinate.latitude,
-        longitude: e.nativeEvent.coordinate.longitude,
+        longitude: e.nativeEvent.coordinate.longitude
       },
       pinColor: "#FF0000",
     };
 
     setRegion({
       latitude: e.nativeEvent.coordinate.latitude,
-      longitude: e.nativeEvent.cordinate.longitude,
+      longitude: e.nativeEvent.coordinate.longitude,
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421,
     });
