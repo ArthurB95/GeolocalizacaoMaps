@@ -1,64 +1,82 @@
 import React, { useState, useEffect } from "react";
 
-import {
-  StyleSheet,
-  View,
-  Platform,
-  PermissionsAndroid,
-  Dimensions,
-} from "react-native";
-import MapView from "react-native-maps";
+import { StyleSheet, View, Dimensions } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 
 const { width, height } = Dimensions.get("screen");
 
 export default function App() {
   const [region, setRegion] = useState(null);
+  const [markers, setMarkers] = useState([]);
 
   useEffect(() => {
     getMyLocation();
   }, []);
 
-  function getMyLocation() {
-      Location.getCurrentPositionAsync((info) => {
-      console.log("LAT", info.coords.latitude);
-      console.log("LONG", info.coords.longitude);
+  async function getMyLocation() {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        throw new Error("Permission to acess location was denied");
+      }
+
+      let result = await Location.getCurrentPositionAsync();
 
       setRegion({
-        latitude: info.coords.latitude,
-        longitude: info.coords.longitude,
+        latitude: result.coords.latitude,
+        longitude: result.coords.longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       });
-    },
-     () => {console.log('DEU ALGUM ERRO')}, {
-       enableHighAccurracy: true,
-       timeout: 2000
-     }
-    );
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  function newMarker(e) {
+    let dados = {
+      key: markers.length,
+      coords: {
+        latitude: e.nativeEvent.coordinate.latitude,
+        longitude: e.nativeEvent.coordinate.longitude,
+      },
+      pinColor: "#FF0000",
+    };
+
+    setRegion({
+      latitude: e.nativeEvent.coordinate.latitude,
+      longitude: e.nativeEvent.cordinate.longitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    });
+
+    setMarkers((oldArray) => [...oldArray, dados]);
   }
 
   return (
     <View style={styles.container}>
       <MapView
-        onMapReady={() => {
-          () =>
-            Platform.OS === "android"
-              ? PermissionsAndroid.request(
-                  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-                ).then(() => {
-                  console.log("USUARIO ACEITOU");
-                })
-              : "";
-        }}
         style={{ width: width, height: height }}
         region={region}
+        initialRegion={region}
         showsUserLocation
         zoomEnabled={true}
         minZoomLevel={17}
         showsUserLocation={true}
         loadingEnabled={true}
-      />
+        onPress={(e) => newMarker(e)}
+      >
+        {markers.map((marker) => {
+          return (
+            <Marker
+              key={marker.key}
+              coordinate={marker.coords}
+              pinColor={marker.pinColor}
+            />
+          );
+        })}
+      </MapView>
     </View>
   );
 }
